@@ -1,0 +1,11 @@
+{
+  "graph": "cust_dim_build",
+  "project": "/Projects/crm",
+  "description": "Build the customer dimension from staging and region reference",
+  "components": [
+    { "id": "in_stg", "name": "stg.customer", "type": "Input Table", "table": "stg.customer" },
+    { "id": "enrich", "name": "Add region", "type": "Reformat", "lookups": ["ref.region"] },
+    { "id": "out_dim", "name": "dw.customer_dim", "type": "Output Table", "table": "dw.customer_dim" }
+  ],
+  "flows": [["in_stg", "enrich"], ["enrich", "out_dim"]]
+}

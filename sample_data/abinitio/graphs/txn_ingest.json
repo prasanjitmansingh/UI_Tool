@@ -1,0 +1,13 @@
+{
+  "graph": "txn_ingest",
+  "project": "/Projects/payments",
+  "description": "Ingest card transactions into the raw zone (external table raw.txn)",
+  "components": [
+    { "id": "in_txn", "name": "Payments switch feed", "type": "Read Multiple Files",
+      "path": "${LANDING}/payments/txn/*.dat" },
+    { "id": "parse", "name": "Parse ISO8583", "type": "Reformat" },
+    { "id": "out_raw", "name": "raw txn files", "type": "Write HDFS",
+      "path": "hdfs://nameservice1/data/prod/raw/txn/dt=${RUN_DATE}" }
+  ],
+  "flows": [["in_txn", "parse"], ["parse", "out_raw"]]
+}

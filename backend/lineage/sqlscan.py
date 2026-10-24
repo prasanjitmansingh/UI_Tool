@@ -120,17 +120,18 @@ class Context:
     scope: str = ""  # job name, used to scope volatile tables
     default_db: str | None = None
     volatile: set[str] = field(default_factory=set)
+    lower: bool = False  # Hive names are lower case; Teradata names upper case
 
     def normalise(self, raw: str) -> str | None:
-        name = raw.replace('"', "").strip(".").upper()
+        name = raw.replace('"', "").replace("`", "").strip(".").upper()
         if not name or name.startswith(SYSTEM_PREFIXES) or name in IGNORED_NAMES:
             return None
         if "." not in name:
             if name in self.volatile:
                 return f"VOLATILE:{self.scope}.{name}"
             if self.default_db:
-                return f"{self.default_db}.{name}"
-        return name
+                name = f"{self.default_db.upper()}.{name}"
+        return name.lower() if self.lower else name
 
 
 def _matching(toks: list[Tok], i: int) -> int:
@@ -267,6 +268,8 @@ def analyse(toks: list[Tok], ctx: Context, lines: LineIndex) -> Stmt | None:
 
     def finish(kind, target_tok_idx, rest_from, merge=False, view=False, alias_target=False):
         tt = toks[target_tok_idx]
+        if tt.kind != "name":
+            return None  # e.g. Hive INSERT OVERWRITE DIRECTORY '...'
         w = _Walker(ctx, lines, ctes, merge)
         w.walk(toks[rest_from:])
         raw = tt.text
@@ -280,7 +283,9 @@ def analyse(toks: list[Tok], ctx: Context, lines: LineIndex) -> Stmt | None:
                     line, view, toks[0].pos)
 
     if head in ("INSERT", "INS"):
-        j = 2 if len(toks) > 1 and toks[1].up == "INTO" else 1
+        j = 1
+        while j < len(toks) and toks[j].up in ("INTO", "OVERWRITE", "TABLE"):
+            j += 1  # Teradata INSERT INTO t / Hive INSERT OVERWRITE TABLE t
         return finish("insert", j, j + 1) if j < len(toks) else None
     if head in ("UPDATE", "UPD") and len(toks) > 1:
         return finish("update", 1, 2, alias_target=True)

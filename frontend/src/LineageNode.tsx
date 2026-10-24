@@ -2,14 +2,21 @@ import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
 import type { LineageNodeData } from "./layout";
 
 const ICON: Record<string, string> = { table: "▦", view: "◩", dataset: "▤", job: "⚙" };
-const LABEL: Record<string, string> = { table: "Table", view: "View", dataset: "MF dataset", job: "Job" };
 
 export function LineageNode({ data, selected }: NodeProps<Node<LineageNodeData>>) {
-  const { node, isRoot, onExpand } = data;
+  const { node, isRoot, terms, onExpand } = data;
   const temp = node.attrs.temporary === true;
-  const parts = node.name.replace(/^VOLATILE:/, "").split(".");
-  const short = node.type === "dataset" ? parts.slice(-2).join(".") : parts[parts.length - 1];
-  const db = node.type === "dataset" ? parts.slice(0, -2).join(".") : parts.slice(0, -1).join(".");
+  let short: string, db: string;
+  if (node.type === "dataset" && node.name.startsWith("/")) {
+    const segs = node.name.split("/").filter(Boolean); // HDFS path: last two segments up front
+    short = segs.slice(-2).join("/");
+    db = "/" + segs.slice(0, -2).join("/");
+  } else {
+    const parts = node.name.replace(/^VOLATILE:/, "").split(".");
+    const keep = node.type === "dataset" ? 2 : 1; // MF dataset: last two qualifiers
+    short = parts.slice(-keep).join(".");
+    db = parts.slice(0, -keep).join(".");
+  }
   return (
     <div className={`lnode t-${node.type}${isRoot ? " root" : ""}${selected ? " sel" : ""}${temp ? " temp" : ""}`}
       title={node.name}>
@@ -19,10 +26,10 @@ export function LineageNode({ data, selected }: NodeProps<Node<LineageNodeData>>
       )}
       <div className="lnode-top">
         <span className="ico" aria-hidden>{ICON[node.type]}</span>
-        <span className="kind">{temp ? "Volatile table" : LABEL[node.type]}</span>
+        <span className="kind">{temp ? "Volatile table" : terms.node[node.type]}</span>
       </div>
       <div className="lnode-name">{short}</div>
-      {db && <div className="lnode-db">{db}</div>}
+      {db && db !== "/" && <div className="lnode-db">{db}</div>}
       {node.hasMoreDown && (
         <button className="more right nodrag" title="Show downstream" onClick={(e) => { e.stopPropagation(); onExpand(node.id, "down"); }}>›</button>
       )}

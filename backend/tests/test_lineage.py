@@ -8,7 +8,7 @@ from lineage.jcl import parse_jcl
 from lineage.scripts import Endpoint, parse_script
 from lineage.sqlscan import Context, extract_sql
 
-SAMPLE = Path(__file__).resolve().parents[2] / "sample_data"
+SAMPLE = Path(__file__).resolve().parents[2] / "sample_data" / "mainframe"
 
 
 def flows(sql, **kw):
@@ -127,10 +127,21 @@ def test_traversal_depth_and_direction(g):
 def test_api():
     from lineage import api
     c = TestClient(api.app)
-    assert c.get("/api/search", params={"q": "order_fact"}).json()[0]["id"] == "tbl:PROD_DW.ORDER_FACT"
-    r = c.get("/api/graph", params={"node": "tbl:PROD_DW.CUSTOMER", "direction": "down", "depth": 2})
+    mf = {"platform": "mainframe"}
+    assert {p["id"] for p in c.get("/api/platforms").json()} == {"mainframe", "abinitio"}
+    assert c.get("/api/search", params={**mf, "q": "order_fact"}).json()[0]["id"] == "tbl:PROD_DW.ORDER_FACT"
+    browse = c.get("/api/search", params={**mf, "type": "table,view"}).json()
+    assert browse and all(n["type"] in ("table", "view") for n in browse)
+    r = c.get("/api/graph", params={**mf, "node": "tbl:PROD_DW.CUSTOMER", "direction": "down", "depth": 2})
     assert r.status_code == 200 and r.json()["edges"]
-    assert c.get("/api/graph", params={"node": "nope"}).status_code == 404
-    snip = c.get("/api/source", params={"file": "scripts/ORDFACT.bteq", "line": 14}).json()
+    assert c.get("/api/graph", params={**mf, "node": "nope"}).status_code == 404
+    assert c.get("/api/graph", params={"platform": "nope"}).status_code == 422
+    d = c.get("/api/node", params={**mf, "id": "tbl:PROD_STG.ORDERS_STG"}).json()
+    assert "tbl:PROD_DW.SALES_SUMMARY" in {o["id"] for o in d["impact"]["objects"]}
+    snip = c.get("/api/source", params={**mf, "file": "scripts/ORDFACT.bteq", "line": 14}).json()
     assert any("ORDER_FACT" in l["text"] for l in snip["lines"])
-    assert c.get("/api/source", params={"file": "../../etc/passwd"}).status_code == 404
+    assert c.get("/api/source", params={**mf, "file": "../abinitio/config.json"}).status_code == 404
+    # the two platforms are independent
+    assert c.get("/api/search", params={"platform": "abinitio", "q": "order_fact"}).json() == []
+    ab = c.get("/api/search", params={"platform": "abinitio", "q": "customer_dim"}).json()
+    assert ab[0]["id"] == "tbl:dw.customer_dim"

@@ -77,3 +77,24 @@ def read_dbc_tables(path: Path) -> dict[str, dict]:
             "comment": _first(row, "commentstring", "comment"),
         }
     return out
+
+
+def read_hive_metastore(path: Path) -> dict[str, dict]:
+    """Hive metastore export: db_name,tbl_name,tbl_type,location,owner,comment,view_text,..."""
+    out: dict[str, dict] = {}
+    for n, row in _rows(path):
+        db = _first(row, "db_name", "database", "databasename")
+        tb = _first(row, "tbl_name", "table", "tablename")
+        if not db or not tb:
+            continue
+        out[f"{db}.{tb}".lower()] = {
+            "tableKind": _first(row, "tbl_type", "type", "tablekind"),
+            "location": _first(row, "location", "sd_location"),
+            "owner": _first(row, "owner"),
+            "comment": _first(row, "comment"),
+            "partitionedBy": _first(row, "partitioned_by", "partition_keys"),
+            "lastAltered": _first(row, "last_ddl_time", "lastaltertimestamp"),
+            "viewText": _first(row, "view_text", "view_expanded_text", "view_original_text"),
+            "line": n,
+        }
+    return out

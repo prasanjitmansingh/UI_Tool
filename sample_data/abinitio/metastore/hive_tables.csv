@@ -1,0 +1,8 @@
+db_name,tbl_name,tbl_type,location,owner,comment,partitioned_by,last_ddl_time,view_text
+stg,customer,MANAGED_TABLE,hdfs://nameservice1/warehouse/stg.db/customer,etl_svc,CRM customer staging,,2025-03-01,
+ref,region,MANAGED_TABLE,hdfs://nameservice1/warehouse/ref.db/region,etl_svc,Region reference,,2023-06-12,
+dw,customer_dim,MANAGED_TABLE,hdfs://nameservice1/warehouse/dw.db/customer_dim,etl_svc,Customer dimension,,2025-02-10,
+raw,txn,EXTERNAL_TABLE,hdfs://nameservice1/data/prod/raw/txn,etl_svc,Raw card transactions,dt,2024-11-04,
+dw,txn_enriched,MANAGED_TABLE,hdfs://nameservice1/warehouse/dw.db/txn_enriched,etl_svc,Transactions with customer attributes,dt,2025-02-10,
+mart,risk_exposure,MANAGED_TABLE,hdfs://nameservice1/warehouse/mart.db/risk_exposure,risk_svc,Daily exposure by segment,dt,2025-01-22,
+mart,v_risk_latest,VIRTUAL_VIEW,,risk_svc,Latest exposure snapshot,,2025-01-22,"SELECT * FROM mart.risk_exposure WHERE dt = (SELECT MAX(dt) FROM mart.risk_exposure)"

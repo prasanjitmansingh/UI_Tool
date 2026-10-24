@@ -1,0 +1,10 @@
+{
+  "graph": "daily_risk",
+  "project": "/Projects/risk",
+  "description": "Daily credit risk exposure mart (Hive SQL)",
+  "components": [
+    { "id": "risk_sql", "name": "Build exposure", "type": "Run SQL",
+      "sql": "INSERT OVERWRITE TABLE mart.risk_exposure PARTITION (dt='${RUN_DATE}')\nSELECT c.segment, SUM(t.amount_usd) FROM `dw`.`txn_enriched` t JOIN dw.customer_dim c ON c.cust_id = t.cust_id GROUP BY c.segment" }
+  ],
+  "flows": []
+}

@@ -1,0 +1,20 @@
+{
+  "graph": "cust_raw_to_stg",
+  "project": "/Projects/crm",
+  "description": "Land CRM customer feed and load the Hive staging table",
+  "parameters": { "FEED_DATE": "${RUN_DATE}" },
+  "components": [
+    { "id": "in_cust", "name": "CRM customer feed", "type": "Input File",
+      "path": "hdfs://nameservice1${LANDING}/crm/customer/" },
+    { "id": "reformat", "name": "Standardise", "type": "Reformat" },
+    { "id": "dedup", "name": "Dedup on cust_id", "type": "Dedup Sorted" },
+    { "id": "out_stg", "name": "stg.customer", "type": "Output Table", "table": "stg.customer" },
+    { "id": "rej", "name": "Rejects", "type": "Output File", "path": "/data/${ENV}/rejects/crm/customer" }
+  ],
+  "flows": [
+    { "from": "in_cust", "to": "reformat" },
+    { "from": "reformat", "to": "dedup" },
+    { "from": "dedup", "to": "out_stg" },
+    { "from": "reformat", "to": "rej" }
+  ]
+}

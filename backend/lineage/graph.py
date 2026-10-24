@@ -130,8 +130,10 @@ class Graph:
 
     def search(self, q: str, types: set[str] | None = None, limit: int = 25) -> list[dict]:
         q = q.strip().upper()
-        if not q:
-            return []
+        if not q:  # browse: alphabetical list of the requested types
+            hits = sorted((n for n in self.nodes.values() if not types or n.type in types),
+                          key=lambda n: n.name.upper())
+            return [n.to_dict() for n in hits[:limit]]
         scored = []
         for n in self.nodes.values():
             if types and n.type not in types:
@@ -171,6 +173,67 @@ class Graph:
             "successors": [e.target for e in before],
         }
 
+    def impact(self, nid: str) -> dict | None:
+        """Everything downstream of a node: what breaks or goes stale if it fails.
+
+        For a table/dataset: all transitively fed tables, views and datasets, plus the
+        jobs that load them. For a job: the objects it writes and their downstream,
+        plus scheduler successors (transitively).
+        """
+        n = self.nodes.get(nid)
+        if not n:
+            return None
+        flow_down: dict[str, list[str]] = {}
+        writers: dict[str, set[str]] = {}
+        sched: dict[str, list[str]] = {}
+        for e in self.edges.values():
+            if e.kind == "FLOW":
+                flow_down.setdefault(e.source, []).append(e.target)
+            elif e.kind == "WRITES":
+                writers.setdefault(e.target, set()).add(e.source)
+            elif e.kind == "RUNS_AFTER":
+                sched.setdefault(e.source, []).append(e.target)
+
+        start = [e.target for e in self.edges.values() if e.kind == "WRITES" and e.source == nid] \
+            if n.type == "job" else [nid]
+        dist: dict[str, int] = {s: (1 if n.type == "job" else 0) for s in start}
+        queue = list(start)
+        while queue:
+            cur = queue.pop(0)
+            for nxt in flow_down.get(cur, []):
+                if nxt not in dist:
+                    dist[nxt] = dist[cur] + 1
+                    queue.append(nxt)
+        dist.pop(nid, None)
+
+        jobs: dict[str, str] = {}
+        for obj in dist:
+            for j in writers.get(obj, ()):
+                if j != nid:
+                    jobs.setdefault(j, "loads an affected object")
+        if n.type == "job":
+            queue = [nid]
+            seen = {nid}
+            while queue:
+                cur = queue.pop(0)
+                for nxt in sched.get(cur, []):
+                    if nxt not in seen:
+                        seen.add(nxt)
+                        queue.append(nxt)
+                        jobs[nxt] = "scheduled after this job"
+
+        def item(i: str) -> dict:
+            m = self.nodes[i]
+            return {"id": i, "name": m.name, "type": m.type, "distance": dist.get(i)}
+
+        objs = sorted(dist, key=lambda i: (dist[i], self.nodes[i].name))
+        return {
+            "id": nid,
+            "objects": [item(i) for i in objs],
+            "jobs": [{"id": j, "name": self.nodes[j].name, "reason": r}
+                     for j, r in sorted(jobs.items(), key=lambda t: self.nodes[t[0]].name)],
+        }
+
     def stats(self) -> dict:
         by_type: dict[str, int] = {}
         for n in self.nodes.values():
@@ -179,4 +242,4 @@ class Graph:
         for e in self.edges.values():
             by_kind[e.kind] = by_kind.get(e.kind, 0) + 1
         return {"nodes": by_type, "edges": by_kind, "sources": self.sources,
-                "warnings": self.warnings}
+                "warnings": list(dict.fromkeys(self.warnings))}

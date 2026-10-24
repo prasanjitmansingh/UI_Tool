@@ -1,0 +1,14 @@
+{
+  "graph": "txn_enrich",
+  "project": "/Projects/payments",
+  "description": "Enrich transactions with customer attributes",
+  "components": [
+    { "id": "in_raw", "name": "raw.txn", "type": "Input Table",
+      "sql": "SELECT t.* FROM raw.txn t WHERE t.dt = '${RUN_DATE}'" },
+    { "id": "join", "name": "Join customer", "type": "Join" },
+    { "id": "in_cust", "name": "dw.customer_dim", "type": "Input Table", "table": "dw.customer_dim" },
+    { "id": "rollup", "name": "Currency normalise", "type": "Reformat", "lookups": ["/data/prod/ref/fx_rates"] },
+    { "id": "out_enr", "name": "dw.txn_enriched", "type": "Output Table", "table": "dw.txn_enriched" }
+  ],
+  "flows": [["in_raw", "join"], ["in_cust", "join"], ["join", "rollup"], ["rollup", "out_enr"]]
+}

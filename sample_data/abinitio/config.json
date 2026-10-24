@@ -1,0 +1,5 @@
+{
+  "default_database": "default",
+  "substitutions": { "$ENV": "prod", "$LANDING": "/data/prod/landing" },
+  "runtime_parameters": ["RUN_DATE"]
+}
