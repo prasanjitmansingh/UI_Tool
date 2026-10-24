@@ -1,0 +1,4 @@
+{
+  "default_database": "PROD_DW",
+  "substitutions": { "${ENV}": "PROD" }
+}

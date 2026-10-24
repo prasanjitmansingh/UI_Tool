@@ -1,0 +1,6 @@
+job,predecessor,schedule,description
+CUSTLOAD,,DAILY 01:00,Customer extract load
+PRODLOAD,,DAILY 01:30,Product master load
+ORDLOAD,CUSTLOAD,DAILY 02:00,Orders stage and fact
+ORDLOAD,PRODLOAD,DAILY 02:00,Orders stage and fact
+SALESRPT,ORDLOAD,DAILY 03:30,Sales summary and extract

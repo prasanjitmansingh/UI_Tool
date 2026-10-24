@@ -1,0 +1,11 @@
+DatabaseName,TableName,TableKind,CreatorName,CreateTimeStamp,LastAlterTimeStamp,CommentString
+PROD_STG,CUSTOMER_STG,T,etl_admin,2021-03-01,2024-06-11,Staging copy of core banking customer extract
+PROD_STG,ORDERS_STG,T,etl_admin,2021-03-01,2024-06-11,Daily order staging
+PROD_STG,PRODUCT_STG,T,etl_admin,2021-03-01,2023-11-02,Product master staging
+PROD_DW,CUSTOMER,T,dw_admin,2020-01-15,2025-01-20,Customer dimension
+PROD_DW,PRODUCT,T,dw_admin,2020-01-15,2024-09-09,Product dimension
+PROD_DW,ORDER_FACT,T,dw_admin,2020-01-15,2025-02-03,Order fact (daily grain)
+PROD_DW,SALES_SUMMARY,T,rpt_admin,2020-06-01,2025-02-03,Sales summary by region/category
+PROD_DW,V_SALES_BY_REGION,V,rpt_admin,2020-06-01,2024-12-12,Regional sales view
+PROD_DW,CUSTOMER_360,T,analyst1,2025-01-10,2025-01-10,Ad hoc customer 360
+REF,REGION,T,dw_admin,2019-01-01,2022-05-05,Region reference
