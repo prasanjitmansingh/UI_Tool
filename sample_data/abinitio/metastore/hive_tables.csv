@@ -6,3 +6,8 @@ raw,txn,EXTERNAL_TABLE,hdfs://nameservice1/data/prod/raw/txn,etl_svc,Raw card tr
 dw,txn_enriched,MANAGED_TABLE,hdfs://nameservice1/warehouse/dw.db/txn_enriched,etl_svc,Transactions with customer attributes,dt,2025-02-10,
 mart,risk_exposure,MANAGED_TABLE,hdfs://nameservice1/warehouse/mart.db/risk_exposure,risk_svc,Daily exposure by segment,dt,2025-01-22,
 mart,v_risk_latest,VIRTUAL_VIEW,,risk_svc,Latest exposure snapshot,,2025-01-22,"SELECT * FROM mart.risk_exposure WHERE dt = (SELECT MAX(dt) FROM mart.risk_exposure)"
+stg,account,MANAGED_TABLE,hdfs://nameservice1/warehouse/stg.db/account,etl_svc,Account master staging,,2025-01-14,
+dw,account_dim,MANAGED_TABLE,hdfs://nameservice1/warehouse/dw.db/account_dim,etl_svc,Account dimension,,2025-02-10,
+mart,fraud_alerts,MANAGED_TABLE,hdfs://nameservice1/warehouse/mart.db/fraud_alerts,fraud_svc,Scored fraud alerts,dt,2025-02-18,
+mart,customer_segments,MANAGED_TABLE,hdfs://nameservice1/warehouse/mart.db/customer_segments,mkt_svc,Monthly customer segments,,2024-12-01,
+mart,v_open_fraud_cases,VIRTUAL_VIEW,,fraud_svc,Alerts not yet closed,,2025-02-18,"SELECT a.* FROM mart.fraud_alerts a WHERE a.status <> 'CLOSED'"

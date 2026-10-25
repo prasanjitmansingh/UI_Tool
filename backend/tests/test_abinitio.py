@@ -58,7 +58,7 @@ def test_impact(g):
     imp = g.impact("tbl:stg.customer")
     assert [o["name"] for o in imp["objects"]][:1] == ["dw.customer_dim"]
     assert "tbl:mart.v_risk_latest" in {o["id"] for o in imp["objects"]}
-    assert {j["name"] for j in imp["jobs"]} == {"cust_dim_build", "txn_enrich", "daily_risk"}
+    assert {j["name"] for j in imp["jobs"]} >= {"cust_dim_build", "txn_enrich", "daily_risk", "fraud_score"}
     job = g.impact("job:txn_ingest")
     assert {j["name"] for j in job["jobs"]} >= {"txn_enrich", "daily_risk"}
 

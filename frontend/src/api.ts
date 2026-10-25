@@ -89,7 +89,7 @@ async function get<T>(path: string, params: Record<string, string | number | und
   return res.json();
 }
 
-export const api = {
+const liveApi = {
   platforms: () => get<Platform[]>("platforms"),
   graph: (platform: PlatformId, p: { node?: string; direction: Direction; depth: number; mode: Mode }) =>
     get<GraphResponse>("graph", { platform, ...p }),
@@ -103,3 +103,10 @@ export const api = {
     return (await res.json()) as Stats;
   },
 };
+
+import { makeStaticApi, type StaticBundle } from "./staticApi";
+
+/** Set by the self-contained demo page, which embeds exported lineage instead of calling the API. */
+export const STATIC_BUNDLE = (window as unknown as { __LINEAGE_DATA__?: StaticBundle }).__LINEAGE_DATA__;
+export const isStatic = STATIC_BUNDLE !== undefined;
+export const api: typeof liveApi = STATIC_BUNDLE ? makeStaticApi(STATIC_BUNDLE) : liveApi;

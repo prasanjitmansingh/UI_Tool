@@ -65,14 +65,19 @@ function ImpactSection({ d, terms, platformLabel, onNavigate }: {
   d: NodeDetail; terms: Terms; platformLabel: string; onNavigate: (id: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [manual, setManual] = useState<string | null>(null);
+  useEffect(() => { setManual(null); }, [d.id]);
   const imp = d.impact;
   if (!imp) return null;
   const copy = async () => {
+    const text = summary(d, imp, terms, platformLabel);
     try {
-      await navigator.clipboard.writeText(summary(d, imp, terms, platformLabel));
+      await navigator.clipboard.writeText(text);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
-    } catch { /* clipboard blocked */ }
+    } catch {
+      setManual(text); // clipboard refused: show the text selected so it can be copied by hand
+    }
   };
   return (
     <section className="impact">
@@ -85,6 +90,10 @@ function ImpactSection({ d, terms, platformLabel, onNavigate }: {
         <div><b>{imp.objects.filter((o) => o.type === "dataset").length}</b><span>{terms.node.dataset.toLowerCase()}s</span></div>
         <div><b>{imp.jobs.length}</b><span>{terms.jobs.toLowerCase()}</span></div>
       </div>
+      {manual !== null && (
+        <textarea id="impact-summary" className="manual-copy" readOnly value={manual} rows={6}
+          aria-label="Impact summary" ref={(el) => el?.select()} />
+      )}
       {imp.objects.length === 0 && imp.jobs.length === 0 && <p className="muted small">Nothing downstream — no dependants found.</p>}
       {imp.objects.length > 0 && (
         <ul className="plain">{imp.objects.map((o) => (

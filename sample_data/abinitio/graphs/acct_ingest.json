@@ -1,0 +1,11 @@
+{
+  "graph": "acct_ingest",
+  "project": "/Projects/core_banking",
+  "description": "Land the core banking account master in Hive staging",
+  "components": [
+    { "id": "in_acct", "name": "Account master feed", "type": "Input File", "path": "${LANDING}/core/accounts/" },
+    { "id": "validate", "name": "Validate", "type": "Reformat" },
+    { "id": "out_stg", "name": "stg.account", "type": "Output Table", "table": "stg.account" }
+  ],
+  "flows": [["in_acct", "validate"], ["validate", "out_stg"]]
+}

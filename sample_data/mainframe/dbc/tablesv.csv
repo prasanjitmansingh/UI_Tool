@@ -9,3 +9,11 @@ PROD_DW,SALES_SUMMARY,T,rpt_admin,2020-06-01,2025-02-03,Sales summary by region/
 PROD_DW,V_SALES_BY_REGION,V,rpt_admin,2020-06-01,2024-12-12,Regional sales view
 PROD_DW,CUSTOMER_360,T,analyst1,2025-01-10,2025-01-10,Ad hoc customer 360
 REF,REGION,T,dw_admin,2019-01-01,2022-05-05,Region reference
+PROD_STG,ACCOUNT_STG,T,etl_admin,2021-03-01,2024-06-11,Account master staging
+PROD_STG,PAYMENT_STG,T,etl_admin,2022-02-14,2024-08-30,Daily card payments staging
+PROD_DW,ACCOUNT,T,dw_admin,2020-01-15,2025-03-03,Account dimension
+PROD_DW,PAYMENT_FACT,T,dw_admin,2022-02-14,2025-03-03,Card payment fact (daily grain)
+PROD_DW,CREDIT_RISK,T,risk_admin,2022-05-01,2025-02-27,Account level credit risk scores
+PROD_DW,V_HIGH_RISK_ACCOUNTS,V,risk_admin,2022-05-01,2025-02-27,Accounts above 90% utilisation
+PROD_DW,EXEC_DASHBOARD,T,bi_svc,2024-09-01,2025-03-01,Executive dashboard extract
+PROD_DW,CUSTOMER_360_HIST,T,analyst1,2025-01-10,2025-01-10,Customer 360 snapshots

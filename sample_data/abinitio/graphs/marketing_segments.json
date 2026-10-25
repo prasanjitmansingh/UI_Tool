@@ -1,0 +1,10 @@
+{
+  "graph": "marketing_segments",
+  "project": "/Projects/marketing",
+  "description": "Monthly customer segments (Hive SQL)",
+  "components": [
+    { "id": "seg_sql", "name": "Build segments", "type": "Run SQL",
+      "sql": "INSERT OVERWRITE TABLE mart.customer_segments\nSELECT c.cust_id, CASE WHEN SUM(t.amount_usd) > 10000 THEN 'premium' ELSE 'core' END\nFROM dw.customer_dim c LEFT JOIN dw.txn_enriched t ON t.cust_id = c.cust_id GROUP BY c.cust_id" }
+  ],
+  "flows": []
+}

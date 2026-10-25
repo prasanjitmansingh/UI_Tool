@@ -1,6 +1,8 @@
 job,predecessor,schedule,description
 CUSTLOAD,,DAILY 01:00,Customer extract load
 PRODLOAD,,DAILY 01:30,Product master load
-ORDLOAD,CUSTLOAD,DAILY 02:00,Orders stage and fact
-ORDLOAD,PRODLOAD,DAILY 02:00,Orders stage and fact
+ACCTLOAD,CUSTLOAD,DAILY 01:45,Account master load
+ORDLOAD,CUSTLOAD PRODLOAD,DAILY 02:00,Orders stage and fact
+PAYLOAD,ACCTLOAD,DAILY 02:15,Card payments load
 SALESRPT,ORDLOAD,DAILY 03:30,Sales summary and extract
+RISKRPT,PAYLOAD ORDLOAD,DAILY 04:00,Credit risk scores and collections feed

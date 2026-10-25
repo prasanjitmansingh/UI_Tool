@@ -1,0 +1,13 @@
+{
+  "graph": "fraud_score",
+  "project": "/Projects/fraud",
+  "description": "Score enriched transactions and publish alerts to the case system",
+  "components": [
+    { "id": "in_txn", "name": "dw.txn_enriched", "type": "Input Table", "table": "dw.txn_enriched" },
+    { "id": "score", "name": "Score rules", "type": "Reformat", "lookups": ["dw.account_dim"] },
+    { "id": "filter", "name": "Score > 700", "type": "Filter by Expression" },
+    { "id": "out_alerts", "name": "mart.fraud_alerts", "type": "Output Table", "table": "mart.fraud_alerts" },
+    { "id": "out_feed", "name": "Case system feed", "type": "Output File", "path": "/data/prod/outbound/fraud/alerts" }
+  ],
+  "flows": [["in_txn", "score"], ["score", "filter"], ["filter", "out_alerts"], ["filter", "out_feed"]]
+}

@@ -1,6 +1,10 @@
 job,predecessor,schedule,description
 cust_raw_to_stg,,DAILY 00:30,CRM landing to staging
 cust_dim_build,cust_raw_to_stg,DAILY 01:00,Customer dimension
+acct_ingest,,DAILY 00:40,Account master landing
+acct_dim_build,acct_ingest cust_dim_build,DAILY 01:20,Account dimension
 txn_ingest,,DAILY 00:15,Payments ingest
 txn_enrich,txn_ingest cust_dim_build,DAILY 02:00,Transaction enrichment
 daily_risk,txn_enrich,DAILY 03:00,Risk mart
+fraud_score,txn_enrich acct_dim_build,DAILY 02:30,Fraud scoring and case feed
+marketing_segments,txn_enrich,MONTHLY DAY1 05:00,Customer segments

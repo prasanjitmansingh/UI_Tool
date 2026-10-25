@@ -1,0 +1,11 @@
+{
+  "graph": "acct_dim_build",
+  "project": "/Projects/core_banking",
+  "description": "Account dimension with customer keys",
+  "components": [
+    { "id": "in_stg", "name": "stg.account", "type": "Input Table", "table": "stg.account" },
+    { "id": "keys", "name": "Attach customer key", "type": "Reformat", "lookups": ["dw.customer_dim"] },
+    { "id": "out_dim", "name": "dw.account_dim", "type": "Output Table", "table": "dw.account_dim" }
+  ],
+  "flows": [["in_stg", "keys"], ["keys", "out_dim"]]
+}

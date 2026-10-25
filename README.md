@@ -14,6 +14,15 @@ LINEAGE_DATA_DIR=/path/to/exports ./run.sh   # expects mainframe/ and abinitio/ 
 # tests: cd backend && python -m pytest
 ```
 
+## Self-contained demo page
+
+`demo/lineage-explorer.html` is the same UI with the sample lineage embedded, so it runs with no server (it is what the shared demo link shows). Rebuild it after changing the data or the UI:
+
+```
+cd frontend && npm run build && cd ..
+python scripts/build_demo.py sample_data demo/lineage-explorer.html
+```
+
 ## Mainframe inputs (`$LINEAGE_DATA_DIR/mainframe/`, every folder optional — see `sample_data/mainframe/`)
 
 | Folder | Content | What it gives you |

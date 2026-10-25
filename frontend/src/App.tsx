@@ -5,7 +5,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
-  api, type Direction, type GEdge, type GraphResponse, type Mode, type Platform, type PlatformId, type Stats,
+  api, isStatic, type Direction, type GEdge, type GraphResponse, type Mode, type Platform, type PlatformId, type Stats,
 } from "./api";
 import { toFlow, type LineageNodeData } from "./layout";
 import { LineageNode } from "./LineageNode";
@@ -33,6 +33,16 @@ function readHash(): View {
   };
 }
 
+/** Static demo: keep view state in memory; only a bare #mainframe / #abinitio picks the platform. */
+function useMemoryState() {
+  const [state, setState] = useState<View>(() => ({
+    platform: location.hash === "#abinitio" ? "abinitio" : "mainframe",
+    node: null, mode: "table", dir: "both", depth: 3,
+  }));
+  const set = useCallback((patch: Partial<View>) => setState((s) => ({ ...s, ...patch })), []);
+  return [state, set] as const;
+}
+
 function useHashState() {
   const [state, setState] = useState(readHash);
   useEffect(() => {
@@ -51,8 +61,10 @@ function useHashState() {
   return [state, set] as const;
 }
 
+const useViewState = isStatic ? useMemoryState : useHashState;
+
 function Canvas() {
-  const [view, setView] = useHashState();
+  const [view, setView] = useViewState();
   const [platforms, setPlatforms] = useState<Platform[]>(FALLBACK_PLATFORMS);
   const [graph, setGraph] = useState<GraphResponse | null>(null);
   const [flow, setFlow] = useState<{ nodes: Node<LineageNodeData>[]; edges: Edge[] }>({ nodes: [], edges: [] });
@@ -112,7 +124,7 @@ function Canvas() {
   return (
     <div className="app">
       <div className="platformbar">
-        <div className="brand">Data lineage</div>
+        <div className="brand">Data lineage{isStatic && <span className="demo-tag">Sample data</span>}</div>
         <div className="platforms" role="tablist" aria-label="Platform">
           {platforms.map((p) => (
             <button key={p.id} role="tab" aria-selected={view.platform === p.id}
@@ -151,7 +163,7 @@ function Canvas() {
         </label>
         <span className="spacer" />
         {view.node && <button className="ghost" onClick={() => setView({ node: null })}>Show all</button>}
-        <button className="ghost" onClick={doRescan} title="Re-read this platform's source files">Rescan</button>
+        {!isStatic && <button className="ghost" onClick={doRescan} title="Re-read this platform's source files">Rescan</button>}
         {stats && stats.warnings.length > 0 && (
           <button className="warn" onClick={() => setShowWarn((s) => !s)} aria-expanded={showWarn} title="Parser warnings">
             ⚠ {stats.warnings.length}
